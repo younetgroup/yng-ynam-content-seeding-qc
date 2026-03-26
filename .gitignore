@@ -1,0 +1,44 @@
+# ── Runtime data (never commit) ──
+data/uploads/
+data/results/
+data/image_cache/
+data/content_qc.db
+data/content_qc.db-shm
+data/content_qc.db-wal
+data/google_credentials.json
+
+# ── Env / secrets ──
+.env
+*.key
+*.pem
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# ── Node (if any tooling added later) ──
+node_modules/
+npm-debug.log*
+
+# ── Docker ──
+*.log
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ──
+.idea/
+.vscode/
+*.swp
+*.swo

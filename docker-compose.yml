@@ -1,0 +1,42 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: content-qc-backend
+    restart: unless-stopped
+    mem_limit: 4g
+    memswap_limit: 6g
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ocr_models:/root/.EasyOCR
+    environment:
+      - DATABASE_URL=sqlite:///./data/content_qc.db
+      - SECRET_KEY=${SECRET_KEY:-younet-content-qc-secret-key-change-in-production-2026}
+      - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-it@younetgroup.com}
+      - DEFAULT_ADMIN_PASSWORD=${DEFAULT_ADMIN_PASSWORD:-YouNet@2026}
+      - MAX_WORKERS=${MAX_WORKERS:-2}
+      - MATCH_THRESHOLD=${MATCH_THRESHOLD:-80}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: content-qc-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_started
+
+volumes:
+  ocr_models:

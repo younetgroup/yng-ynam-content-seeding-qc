@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content QC Tool — YouNet</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="/logo-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <style>
+    /* ── Light Theme Tokens ── */
+    :root {
+      --yn-blue-50: #EBF6FF; --yn-blue-100: #D9EFFF; --yn-blue-200: #B2DEFF;
+      --yn-blue-300: #8CCEFF; --yn-blue-400: #59B8FF; --yn-blue-500: #0092FF;
+      --yn-blue-600: #007CD9; --yn-blue-700: #0066B2; --yn-blue-800: #00508C;
+      --yn-blue-900: #003A66; --yn-navy: #04115B;
+      --yn-purple-50: #F3F1F7; --yn-purple-500: #635595;
+      --yn-gold-500: #FDB32B;
+      --yn-green: #16a34a; --yn-red: #dc2626;
+      --yn-font-heading: "Montserrat", "Inter", system-ui, sans-serif;
+      --yn-font-body: "Inter", "Montserrat", system-ui, sans-serif;
+      --yn-radius-card: 16px; --yn-radius-input: 12px; --yn-radius-pill: 999px;
+      /* Semantic tokens (light) */
+      --bg-primary: #F8F8FB; --bg-card: #FFFFFF; --bg-input: #FFFFFF;
+      --bg-hover: #EBF6FF; --bg-table-header: #04115B;
+      --border-color: #E4E7EE; --border-input: #E4E7EE;
+      --text-primary: #111827; --text-secondary: #6B7280; --text-inverse: #FFFFFF;
+      --shadow-card: 0 8px 24px rgba(0,0,0,0.10); --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    /* ── Dark Theme ── */
+    .dark {
+      --bg-primary: #0f1117; --bg-card: #1a1d27; --bg-input: #252833;
+      --bg-hover: #252833; --bg-table-header: #1e2130;
+      --border-color: #2d3042; --border-input: #3d4058;
+      --text-primary: #e4e7ee; --text-secondary: #8b90a0; --text-inverse: #e4e7ee;
+      --shadow-card: 0 8px 24px rgba(0,0,0,0.3); --shadow-sm: 0 2px 8px rgba(0,0,0,0.2);
+      --yn-navy: #8ba4ff; --yn-blue-50: #1e2130; --yn-blue-700: #4d9fff;
+      --yn-blue-800: #3d8ae6; --yn-neutral-50: #1a1d27; --yn-neutral-100: #252833;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--yn-font-body); background: var(--bg-primary);
+      color: var(--text-primary); line-height: 1.6; min-height: 100vh;
+      transition: background .3s, color .3s;
+    }
+    /* ── Header ── */
+    .header {
+      background: var(--bg-card); border-bottom: 1px solid var(--border-color);
+      position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm);
+    }
+    .header-inner {
+      max-width: 1280px; margin: 0 auto; padding: 0 24px; height: 64px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-family: var(--yn-font-heading); font-weight: 700; font-size: 20px;
+      color: var(--yn-navy); display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--yn-blue-700), var(--yn-purple-500));
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 14px; font-weight: 700;
+    }
+    .header-nav { display: flex; align-items: center; gap: 8px; }
+    .nav-tab {
+      padding: 8px 16px; border-radius: var(--yn-radius-pill);
+      font-size: 14px; font-weight: 500; cursor: pointer;
+      border: none; background: transparent;
+      color: var(--text-secondary); transition: all .2s;
+      font-family: var(--yn-font-body);
+    }
+    .nav-tab:hover { background: var(--bg-hover); color: var(--yn-blue-700); }
+    .nav-tab.active { background: var(--yn-blue-700); color: white; }
+    .theme-toggle {
+      width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border-color);
+      background: var(--bg-card); cursor: pointer; font-size: 18px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s; margin-left: 8px;
+    }
+    .theme-toggle:hover { border-color: var(--yn-blue-500); }
+    /* ── Main ── */
+    .main { max-width: 1280px; margin: 0 auto; padding: 32px 24px; }
+    /* ── Cards ── */
+    .card {
+      background: var(--bg-card); border: 1px solid var(--border-color);
+      border-radius: var(--yn-radius-card); box-shadow: var(--shadow-card);
+      padding: 32px; margin-bottom: 24px; transition: background .3s, border-color .3s;
+    }
+    .card-title {
+      font-family: var(--yn-font-heading); font-size: 20px; font-weight: 700;
+      color: var(--yn-navy); margin-bottom: 24px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .card-title .icon { font-size: 22px; }
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 24px; border-radius: var(--yn-radius-pill);
+      font-family: var(--yn-font-body); font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none; transition: all .2s; text-decoration: none;
+    }
+    .btn-primary { background: var(--yn-blue-700); color: white; }
+    .btn-primary:hover { background: var(--yn-blue-800); }
+    .btn-primary:disabled { background: var(--border-color); color: var(--text-secondary); cursor: not-allowed; }
+    .btn-secondary { background: transparent; color: var(--yn-blue-700); border: 1.5px solid var(--yn-blue-700); }
+    .btn-secondary:hover { background: var(--yn-blue-50); }
+    .btn-danger { background: var(--yn-red); color: white; }
+    .btn-danger:hover { opacity: .9; }
+    .btn-success { background: var(--yn-green); color: white; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+    .btn-gold { background: var(--yn-gold-500); color: #04115B; }
+    .btn-ghost { background: transparent; color: var(--text-secondary); padding: 6px 10px; }
+    .btn-ghost:hover { color: var(--yn-blue-700); background: var(--bg-hover); }
+    /* ── Forms ── */
+    .form-group { margin-bottom: 16px; }
+    .form-label {
+      display: block; font-size: 13px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 6px;
+      font-family: var(--yn-font-heading);
+    }
+    .form-input, .form-select {
+      width: 100%; height: 44px; padding: 0 14px;
+      border: 1.5px solid var(--border-input); border-radius: var(--yn-radius-input);
+      font-family: var(--yn-font-body); font-size: 14px;
+      color: var(--text-primary); background: var(--bg-input);
+      transition: border-color .2s;
+    }
+    .form-input:focus, .form-select:focus {
+      outline: none; border-color: var(--yn-blue-500);
+      box-shadow: 0 0 0 3px rgba(0,146,255,.15);
+    }
+    .form-hint { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+    /* ── Upload ── */
+    .upload-zone {
+      border: 2px dashed var(--yn-blue-300); border-radius: var(--yn-radius-card);
+      padding: 48px 32px; text-align: center; background: var(--yn-blue-50);
+      cursor: pointer; transition: all .2s;
+    }
+    .upload-zone:hover { border-color: var(--yn-blue-500); }
+    .upload-zone.dragover { border-color: var(--yn-blue-700); }
+    .upload-icon { font-size: 48px; margin-bottom: 12px; }
+    .upload-text { font-size: 16px; font-weight: 600; color: var(--yn-navy); }
+    .upload-hint { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    /* ── Preview Table ── */
+    .preview-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+    .preview-table th {
+      background: var(--bg-table-header); color: var(--text-inverse);
+      padding: 10px 12px; text-align: left;
+      font-family: var(--yn-font-heading); font-weight: 600; position: sticky; top: 0;
+    }
+    .preview-table td {
+      padding: 8px 12px; border-bottom: 1px solid var(--border-color);
+      max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .preview-table tr:hover td { background: var(--bg-hover); }
+    .preview-table .row-selector { width: 20px; height: 20px; accent-color: var(--yn-blue-700); }
+    .table-scroll { overflow-x: auto; max-height: 300px; overflow-y: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+    /* ── Progress ── */
+    .progress-bar-container {
+      width: 100%; height: 10px; background: var(--yn-neutral-100);
+      border-radius: 999px; overflow: hidden; margin: 16px 0;
+    }
+    .progress-bar-fill {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, var(--yn-blue-700), var(--yn-blue-500));
+      transition: width .5s ease;
+    }
+    .progress-bar-fill.complete { background: linear-gradient(90deg, var(--yn-green), #22c55e); }
+    .progress-stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px; margin-top: 16px;
+    }
+    .stat-box { background: var(--yn-neutral-50); border-radius: 12px; padding: 16px; text-align: center; border: 1px solid var(--border-color); }
+    .stat-value { font-family: var(--yn-font-heading); font-size: 28px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 4px; }
+    .stat-blue .stat-value { color: var(--yn-blue-700); }
+    .stat-green .stat-value { color: var(--yn-green); }
+    .stat-red .stat-value { color: var(--yn-red); }
+    .stat-purple .stat-value { color: var(--yn-purple-500); }
+    /* ── Job List ── */
+    .job-item {
+      display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 12px;
+      border: 1px solid var(--border-color); margin-bottom: 12px;
+      background: var(--bg-card); transition: box-shadow .2s;
+    }
+    .job-item:hover { box-shadow: var(--shadow-sm); }
+    .job-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .dot-completed { background: var(--yn-green); }
+    .dot-processing { background: var(--yn-blue-500); animation: pulse 1.5s infinite; }
+    .dot-pending { background: var(--text-secondary); }
+    .dot-failed { background: var(--yn-red); }
+    .dot-paused { background: var(--yn-gold-500); }
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+    .job-info { flex: 1; min-width: 0; }
+    .job-name { font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .job-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .job-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+    /* ── Admin ── */
+    .setting-row {
+      display: flex; align-items: center; gap: 16px;
+      padding: 16px 0; border-bottom: 1px solid var(--border-color);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-info { flex: 1; }
+    .setting-key { font-weight: 600; font-size: 14px; }
+    .setting-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+    .setting-input { width: 140px; }
+    /* ── Toast ── */
+    .toast-container {
+      position: fixed; top: 80px; right: 24px;
+      z-index: 1000; display: flex; flex-direction: column; gap: 8px;
+    }
+    .toast {
+      padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+      box-shadow: var(--shadow-card); animation: slideIn .3s ease; max-width: 400px;
+    }
+    .toast-success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .toast-error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .toast-info { background: var(--yn-blue-50); color: var(--yn-blue-800); border: 1px solid var(--yn-blue-200); }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(4,17,91,.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200; backdrop-filter: blur(4px);
+    }
+    .modal {
+      background: var(--bg-card); border-radius: var(--yn-radius-card);
+      padding: 40px; width: 100%; max-width: 420px;
+      box-shadow: 0 24px 48px rgba(0,0,0,.2);
+    }
+    .modal-title {
+      font-family: var(--yn-font-heading); font-size: 24px; font-weight: 700;
+      color: var(--yn-navy); margin-bottom: 8px; text-align: center;
+    }
+    .modal-sub { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 28px; }
+    /* ── Detail Table ── */
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .detail-table th {
+      background: var(--yn-neutral-100); padding: 10px 12px;
+      text-align: left; font-weight: 600; font-family: var(--yn-font-heading);
+      position: sticky; top: 0; color: var(--text-primary);
+    }
+    .detail-table td { padding: 8px 12px; border-bottom: 1px solid var(--border-color); }
+    .detail-table tr:hover td { background: var(--bg-hover); }
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: var(--yn-radius-pill);
+      font-size: 11px; font-weight: 600;
+    }
+    .badge-ok { background: #dcfce7; color: #166534; }
+    .badge-fail { background: #fef2f2; color: #991b1b; }
+    .badge-pending { background: var(--yn-neutral-100); color: var(--text-secondary); }
+    .badge-processing { background: var(--yn-blue-50); color: var(--yn-blue-700); }
+    .empty-state { text-align: center; padding: 64px 32px; color: var(--text-secondary); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+    .empty-state p { font-size: 15px; }
+    /* ── Pagination ── */
+    .pagination { display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 20px; flex-wrap: wrap; }
+    .pagination .btn { min-width: 36px; height: 36px; padding: 0 10px; justify-content: center; font-size: 13px; }
+    .pagination .btn-page-active { background: var(--yn-blue-500); color: #fff; border-color: var(--yn-blue-500); font-weight: 700; }
+    .pagination .page-ellipsis { padding: 0 4px; color: var(--text-secondary); font-size: 14px; line-height: 36px; }
+    .pagination .btn-nav { font-size: 16px; }
+    /* ── Editable Job Name ── */
+    .editable-name { cursor: pointer; border-bottom: 1px dashed transparent; transition: border-color .2s; }
+    .editable-name:hover { border-bottom-color: var(--yn-blue-500); }
+    .rename-input {
+      border: 1.5px solid var(--yn-blue-500); border-radius: 6px; padding: 2px 8px;
+      font-size: 14px; font-weight: 600; font-family: var(--yn-font-body);
+      background: var(--bg-input); color: var(--text-primary); width: 300px;
+    }
+    /* ── Admin Cards Grid ── */
+    .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .form-row-4 { grid-template-columns: 1fr 1fr; }
+      .admin-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .form-row, .form-row-4 { grid-template-columns: 1fr; }
+      .header-inner { padding: 0 12px; }
+      .main { padding: 16px; }
+      .card { padding: 20px; }
+      .progress-stats { grid-template-columns: 1fr 1fr; }
+      .job-item { flex-direction: column; align-items: flex-start; }
+      .job-actions { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- Toast -->
+  <div class="toast-container">
+    <div v-for="(t,i) in toasts" :key="i" :class="['toast', 'toast-' + t.type]">{{ t.message }}</div>
+  </div>
+
+  <!-- Login Modal -->
+  <div v-if="showLogin" class="modal-overlay" @click.self="showLogin = false">
+    <div class="modal">
+      <div class="modal-title">Admin Login</div>
+      <div class="modal-sub">Sign in to access admin settings</div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" v-model="loginEmail" placeholder="it@younetgroup.com" @keyup.enter="doLogin" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" v-model="loginPassword" placeholder="Password" @keyup.enter="doLogin" />
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" @click="doLogin" :disabled="loginLoading">
+        {{ loginLoading ? 'Signing in...' : 'Sign In' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Rename Modal -->
+  <div v-if="showRename" class="modal-overlay" @click.self="showRename=false">
+    <div class="modal" style="max-width:480px">
+      <div class="modal-title" style="font-size:18px">Rename Job</div>
+      <div class="form-group" style="margin-top:16px">
+        <input class="form-input" v-model="renameValue" @keyup.enter="doRename" placeholder="Enter job name..." autofocus />
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-secondary btn-sm" @click="showRename=false">Cancel</button>
+        <button class="btn btn-primary btn-sm" @click="doRename">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a class="logo" href="#" @click.prevent="currentTab='upload'">
+        <div class="logo-icon">QC</div>
+        Content QC Tool
+      </a>
+      <div class="header-nav">
+        <button :class="['nav-tab', currentTab==='upload' && 'active']" @click="currentTab='upload'">New Job</button>
+        <button :class="['nav-tab', currentTab==='jobs' && 'active']" @click="currentTab='jobs'; loadJobs()">Jobs</button>
+        <button :class="['nav-tab', currentTab==='admin' && 'active']" @click="openAdmin">Admin</button>
+        <button class="theme-toggle" @click="toggleTheme" :title="isDark?'Switch to Light':'Switch to Dark'">
+          {{ isDark ? '&#9728;' : '&#9790;' }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+
+    <!-- ═══ TAB: Upload ═══ -->
+    <div v-if="currentTab==='upload'">
+      <!-- Step 1: Source -->
+      <div class="card">
+        <div class="card-title"><span class="icon">&#128193;</span> Step 1 — Select Data Source</div>
+        <div style="display:flex;gap:8px;margin-bottom:20px">
+          <button :class="['btn btn-sm', inputMode==='file'?'btn-primary':'btn-secondary']" @click="inputMode='file'; resetUpload()">Upload Excel File</button>
+          <button :class="['btn btn-sm', inputMode==='gsheet'?'btn-primary':'btn-secondary']" @click="inputMode='gsheet'; resetUpload()">Google Sheet URL</button>
+        </div>
+
+        <!-- File Upload -->
+        <div v-if="inputMode==='file'">
+          <div v-if="!uploadedFile" class="upload-zone" :class="{dragover:isDragging}"
+               @click="$refs.fileInput.click()" @dragover.prevent="isDragging=true"
+               @dragleave="isDragging=false" @drop.prevent="handleDrop">
+            <div class="upload-icon">&#128202;</div>
+            <div class="upload-text">Drop your .xlsx file here or click to browse</div>
+            <div class="upload-hint">Supports .xlsx and .xls files</div>
+          </div>
+          <div v-else style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:32px">&#9989;</span>
+            <div>
+              <div style="font-weight:600">{{ uploadedFile.original_filename }}</div>
+              <div style="font-size:12px;color:var(--text-secondary)">{{ (uploadedFile.size / 1024).toFixed(1) }} KB</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="margin-left:auto" @click="resetUpload">Change File</button>
+          </div>
+          <input ref="fileInput" type="file" accept=".xlsx,.xls" style="display:none" @change="handleFileSelect" />
+        </div>
+
+        <!-- Google Sheet -->
+        <div v-if="inputMode==='gsheet'">
+          <div v-if="!gsheetConfigured" style="padding:16px;background:#fef2f2;border-radius:12px;font-size:14px;color:#991b1b;margin-bottom:16px">
+            Google credentials not configured. Go to <strong>Admin</strong> tab to upload your Google Cloud service account JSON.
+          </div>
+          <div v-else>
+            <div class="form-group">
+              <label class="form-label">Google Sheet URL</label>
+              <div style="display:flex;gap:8px">
+                <input class="form-input" v-model="gsheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." style="flex:1" @keyup.enter="loadGSheetPreview" />
+                <button class="btn btn-primary btn-sm" @click="loadGSheetPreview" :disabled="gsheetLoading || !gsheetUrl">
+                  {{ gsheetLoading ? 'Loading...' : 'Load Sheet' }}
+                </button>
+              </div>
+              <div class="form-hint" v-if="gsheetServiceEmail">
+                Share your sheet with <strong style="user-select:all;color:var(--yn-blue-700)">{{ gsheetServiceEmail }}</strong> (Editor permission required).
+              </div>
+              <div class="form-hint" v-else>Share the sheet with the service account email (Editor permission).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Configure -->
+      <div class="card" v-if="preview">
+        <div class="card-title"><span class="icon">&#9881;&#65039;</span> Step 2 — Configure Columns</div>
+
+        <!-- Sheet selector -->
+        <div class="form-group" v-if="preview.sheet_names && preview.sheet_names.length > 1">
+          <label class="form-label">Sheet</label>
+          <select class="form-select" v-model="config.sheetName" @change="reloadPreview">
+            <option v-for="s in preview.sheet_names" :key="s" :value="s">{{ s }}</option>
+          </select>
+          <div class="form-hint">{{ preview.sheet_names.length }} sheets available</div>
+        </div>
+
+        <!-- Header line selection -->
+        <div class="form-group">
+          <label class="form-label">Header Line</label>
+          <div class="table-scroll">
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th style="width:50px">Use</th>
+                  <th style="width:50px">Row</th>
+                  <th v-for="cl in preview.column_letters" :key="cl">{{ cl }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="row in preview.rows" :key="row.row_number">
+                  <td><input type="radio" class="row-selector" :value="row.row_number" v-model="config.headerLine" @change="autoDetectColumns" /></td>
+                  <td style="font-weight:600">{{ row.row_number }}</td>
+                  <td v-for="(cell, ci) in row.cells" :key="ci" :title="cell">{{ cell.substring(0, 40) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Line 1: Column mapping (4 cols) -->
+        <div class="form-row-4">
+          <div class="form-group">
+            <label class="form-label">Comment Column</label>
+            <select class="form-select" v-model="config.commentColumn">
+              <option v-for="cl in preview.column_letters" :key="cl" :value="cl">{{ cl }} — {{ getHeaderName(cl) }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Screenshot Column</label>
+            <select class="form-select" v-model="config.screenshotColumn">
+              <option v-for="cl in preview.column_letters" :key="cl" :value="cl">{{ cl }} — {{ getHeaderName(cl) }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Result Column</label>
+            <select class="form-select" v-model="config.resultColumn">
+              <option v-for="cl in safeOutputColumns" :key="cl" :value="cl">{{ cl }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">OCR Text Column</label>
+            <select class="form-select" v-model="config.ocrDumpColumn">
+              <option value="">— None —</option>
+              <option v-for="cl in safeOutputColumns" :key="cl" :value="cl">{{ cl }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Line 2: Options (4 cols) -->
+        <div class="form-row-4">
+          <div class="form-group">
+            <label class="form-label">Parallel Workers</label>
+            <select class="form-select" v-model.number="config.parallelWorkers">
+              <option :value="1">1 (Sequential)</option>
+              <option :value="2">2 (Default)</option>
+              <option :value="3">3</option>
+              <option :value="4">4</option>
+              <option :value="5">5</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Match Threshold (%)</label>
+            <input class="form-input" type="number" min="50" max="100" v-model.number="config.matchThreshold" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Start Row</label>
+            <input class="form-input" type="number" min="1" v-model.number="config.startRow" placeholder="From beginning" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Row</label>
+            <input class="form-input" type="number" min="1" v-model.number="config.endRow" placeholder="To end" />
+          </div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <button class="btn btn-primary" @click="startJob" :disabled="jobStarting">
+            {{ jobStarting ? 'Starting...' : 'Start QC Processing' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Progress -->
+      <div class="card" v-if="activeJob">
+        <div class="card-title">
+          <span class="icon">&#128202;</span> Processing Progress
+          <span :class="['badge', activeJob.status==='completed'?'badge-ok':activeJob.status==='failed'?'badge-fail':activeJob.status==='processing'?'badge-processing':'badge-pending']"
+                style="margin-left:12px;font-size:12px;padding:4px 12px">
+            {{ activeJob.status.toUpperCase() }}
+          </span>
+        </div>
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" :class="{complete: activeJob.status==='completed'}" :style="{width: progressPct + '%'}"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text-secondary)">
+          <span>{{ activeJob.processed_rows + activeJob.failed_rows }} / {{ activeJob.total_rows }} rows</span>
+          <span>{{ progressPct.toFixed(1) }}%</span>
+        </div>
+        <div class="progress-stats">
+          <div class="stat-box stat-blue"><div class="stat-value">{{ activeJob.total_rows }}</div><div class="stat-label">Total</div></div>
+          <div class="stat-box stat-green"><div class="stat-value">{{ activeJob.matched_rows }}</div><div class="stat-label">Matched</div></div>
+          <div class="stat-box stat-red"><div class="stat-value">{{ Math.max(0, activeJob.processed_rows - activeJob.matched_rows) }}</div><div class="stat-label">Unmatched</div></div>
+          <div class="stat-box stat-purple"><div class="stat-value">{{ activeJob.failed_rows }}</div><div class="stat-label">Failed</div></div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:20px;align-items:center;flex-wrap:wrap">
+          <button v-if="activeJob.status==='processing'" class="btn btn-gold btn-sm" @click="pauseJob(activeJob.id)">Pause</button>
+          <button v-if="activeJob.status==='paused'" class="btn btn-primary btn-sm" @click="resumeJob(activeJob.id)">Resume</button>
+          <button v-if="activeJob.status==='failed'" class="btn btn-primary btn-sm" @click="resumeJob(activeJob.id)">Retry Failed</button>
+          <button v-if="activeJob.status==='completed' && activeJob.failed_rows > 0" class="btn btn-secondary btn-sm" @click="resumeJob(activeJob.id)">Retry {{ activeJob.failed_rows }} Failed</button>
+          <button v-if="activeJob.filename && activeJob.filename!==''" class="btn btn-secondary btn-sm" @click="downloadOriginal(activeJob.id)">Download Original</button>
+          <button v-if="activeJob.result_filename && activeJob.result_filename !== 'gsheet_written'" class="btn btn-success btn-sm" @click="downloadResult(activeJob.id)">Download Result</button>
+          <span v-if="activeJob.result_filename === 'gsheet_written'" class="badge badge-ok" style="padding:8px 16px;font-size:13px">Written to Google Sheet</span>
+          <button class="btn btn-secondary btn-sm" @click="viewJobDetail(activeJob.id)">View Details</button>
+        </div>
+        <div v-if="activeJob.error_message" style="margin-top:12px;padding:12px;background:#fef2f2;border-radius:8px;font-size:13px;color:#991b1b">
+          {{ activeJob.error_message }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: Jobs ═══ -->
+    <div v-if="currentTab==='jobs'">
+      <div class="card">
+        <div class="card-title"><span class="icon">&#128203;</span> Job History</div>
+        <div v-if="jobs.length === 0" class="empty-state">
+          <div class="icon">&#128237;</div>
+          <p>No jobs yet. Upload an Excel file to get started.</p>
+        </div>
+        <div v-for="j in jobs" :key="j.id" class="job-item">
+          <div :class="['job-status-dot', 'dot-' + j.status]"></div>
+          <div class="job-info">
+            <div class="job-name" style="display:flex;align-items:center;gap:6px">
+              <span class="editable-name" @click="openRename(j)">{{ j.job_name || j.original_filename }}</span>
+              <button class="btn-ghost btn-sm" @click="openRename(j)" title="Rename" style="font-size:14px;padding:2px 6px">&#9998;</button>
+            </div>
+            <div class="job-meta">
+              #{{ j.id }} &middot; {{ j.status.toUpperCase() }} &middot; {{ j.processed_rows }}/{{ j.total_rows }} rows &middot;
+              {{ j.matched_rows }} matched &middot; Threshold: {{ j.match_threshold }}%
+              &middot; {{ formatDate(j.created_at) }}
+            </div>
+          </div>
+          <div class="job-actions">
+            <button v-if="j.status==='processing'" class="btn btn-gold btn-sm" @click="pauseJob(j.id)">Pause</button>
+            <button v-if="j.status==='paused' || j.status==='failed'" class="btn btn-primary btn-sm" @click="resumeJob(j.id)">Resume</button>
+            <button v-if="j.filename" class="btn btn-secondary btn-sm" @click="downloadOriginal(j.id)" title="Download original">Original</button>
+            <button v-if="j.result_filename && j.result_filename !== 'gsheet_written'" class="btn btn-success btn-sm" @click="downloadResult(j.id)">Result</button>
+            <span v-if="j.result_filename === 'gsheet_written'" class="badge badge-ok" style="font-size:11px">GSheet</span>
+            <button class="btn btn-secondary btn-sm" @click="viewJobDetail(j.id)">Detail</button>
+            <button class="btn btn-danger btn-sm" @click="deleteJob(j.id)">Delete</button>
+          </div>
+        </div>
+        <!-- Pagination -->
+        <div class="pagination" v-if="jobsTotalPages > 1">
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="jobsCurrentPage === 0" @click="goJobsPage(0)">«</button>
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="jobsCurrentPage === 0" @click="goJobsPage(jobsCurrentPage - 1)">‹</button>
+          <template v-for="p in jobsPageNums" :key="p === null ? 'ellipsis-' + Math.random() : p">
+            <span v-if="p === null" class="page-ellipsis">…</span>
+            <button v-else :class="['btn btn-sm', p === jobsCurrentPage ? 'btn-page-active' : 'btn-secondary']" @click="goJobsPage(p)">{{ p + 1 }}</button>
+          </template>
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="jobsCurrentPage >= jobsTotalPages - 1" @click="goJobsPage(jobsCurrentPage + 1)">›</button>
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="jobsCurrentPage >= jobsTotalPages - 1" @click="goJobsPage(jobsTotalPages - 1)">»</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: Detail ═══ -->
+    <div v-if="currentTab==='detail' && detailJob">
+      <!-- Header + Downloads -->
+      <div class="card" style="padding:20px 32px">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <span class="icon" style="font-size:22px">&#128269;</span>
+          <span class="editable-name" style="font-weight:700;font-size:18px;font-family:var(--yn-font-heading)" @click="openRename(detailJob)">{{ detailJob.job_name || detailJob.original_filename }}</span>
+          <span :class="['badge', detailJob.status==='completed'?'badge-ok':detailJob.status==='failed'?'badge-fail':detailJob.status==='processing'?'badge-processing':'badge-pending']"
+                style="font-size:12px;padding:4px 12px">{{ detailJob.status.toUpperCase() }}</span>
+          <span style="flex:1"></span>
+          <button v-if="detailJob.status==='processing'" class="btn btn-gold btn-sm" @click="pauseJob(detailJob.id)">Pause</button>
+          <button v-if="detailJob.status==='paused' || detailJob.status==='failed'" class="btn btn-primary btn-sm" @click="resumeJob(detailJob.id)">Resume</button>
+          <button class="btn btn-secondary btn-sm" @click="currentTab='jobs'; loadJobs(); window.location.hash='#/jobs'">Back</button>
+        </div>
+        <!-- Download bar -->
+        <div style="display:flex;gap:10px;margin-top:12px;align-items:center;flex-wrap:wrap">
+          <button v-if="detailJob.filename" class="btn btn-secondary btn-sm" @click="downloadOriginal(detailJob.id)">&#128229; Download Original</button>
+          <button v-if="detailJob.result_filename && detailJob.result_filename!=='gsheet_written'" class="btn btn-success btn-sm" @click="downloadResult(detailJob.id)">&#128230; Download Result</button>
+          <a v-if="detailJob.result_filename === 'gsheet_written' && detailJob.gsheet_url" :href="detailJob.gsheet_url" target="_blank" class="btn btn-success btn-sm" style="text-decoration:none">&#128279; Open Google Sheet</a>
+          <span style="flex:1"></span>
+          <span style="font-size:13px;color:var(--text-secondary)">Threshold: {{ detailJob.match_threshold }}% &middot; {{ detailJob.processed_rows + detailJob.failed_rows }}/{{ detailJob.total_rows }} rows</span>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="progress-stats" style="margin:16px 0">
+        <div class="stat-box stat-blue"><div class="stat-value">{{ detailJob.total_rows }}</div><div class="stat-label">Total</div></div>
+        <div class="stat-box stat-green"><div class="stat-value">{{ detailJob.matched_rows }}</div><div class="stat-label">Matched</div></div>
+        <div class="stat-box stat-red"><div class="stat-value">{{ Math.max(0, detailJob.processed_rows - detailJob.matched_rows) }}</div><div class="stat-label">Unmatched</div></div>
+        <div class="stat-box stat-purple"><div class="stat-value">{{ detailJob.failed_rows }}</div><div class="stat-label">Failed</div></div>
+      </div>
+
+      <!-- Progress bar (during processing) -->
+      <div v-if="detailJob.status==='processing'" class="card" style="padding:16px 32px">
+        <div class="progress-bar-container">
+          <div class="progress-bar-fill" :style="{width: detailProgressPct + '%'}"></div>
+        </div>
+        <div style="text-align:center;font-size:13px;color:var(--text-secondary)">{{ detailProgressPct.toFixed(1) }}%</div>
+      </div>
+
+      <!-- Results Table -->
+      <div class="card">
+        <!-- Filters -->
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px;justify-content:space-between">
+          <!-- Left: Status filters -->
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em">Status:</span>
+            <button :class="['btn btn-sm', detailResultFilter==='failed'?'btn-primary':'btn-secondary']" @click="detailResultFilter='failed';detailRowSkip=0;loadJobRows()">Failed ({{ detailJob.failed_rows }})</button>
+            <button :class="['btn btn-sm', detailResultFilter==='pending'?'btn-primary':'btn-secondary']" @click="detailResultFilter='pending';detailRowSkip=0;loadJobRows()">Pending</button>
+            <button :class="['btn btn-sm', detailResultFilter==='skipped'?'btn-primary':'btn-secondary']" @click="detailResultFilter='skipped';detailRowSkip=0;loadJobRows()">Skipped</button>
+          </div>
+          <!-- Right: Result filters -->
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:12px;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.04em">Result:</span>
+            <button :class="['btn btn-sm', detailResultFilter===''?'btn-primary':'btn-secondary']" @click="detailResultFilter='';detailRowSkip=0;loadJobRows()">All ({{ detailJob.total_rows }})</button>
+            <button :class="['btn btn-sm', detailResultFilter==='ok'?'btn-primary':'btn-secondary']" @click="detailResultFilter='ok';detailRowSkip=0;loadJobRows()">OK ({{ detailJob.matched_rows }})</button>
+            <button :class="['btn btn-sm', detailResultFilter==='no'?'btn-primary':'btn-secondary']" @click="detailResultFilter='no';detailRowSkip=0;loadJobRows()">No ({{ Math.max(0, detailJob.processed_rows - detailJob.matched_rows) }})</button>
+          </div>
+        </div>
+
+        <div class="table-scroll" style="max-height:600px">
+          <table class="detail-table">
+            <thead>
+              <tr><th style="width:60px">Row</th><th>Comment</th><th style="width:100px">Score</th><th style="width:70px">Result</th><th style="width:80px">Status</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="r in detailRows" :key="r.id" @click="openRowDetail(r)" style="cursor:pointer">
+                <td>{{ r.row_number }}</td>
+                <td :title="r.comment_text" style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ r.comment_text }}</td>
+                <td>{{ r.match_score != null ? r.match_score.toFixed(1) + '%' : '—' }}</td>
+                <td>
+                  <span v-if="r.match_result===1" class="badge badge-ok">OK</span>
+                  <span v-else-if="r.match_result===0 && r.status==='completed'" class="badge badge-fail">No</span>
+                  <span v-else class="badge badge-pending">—</span>
+                </td>
+                <td>
+                  <span :class="['badge', r.status==='completed'?'badge-ok':r.status==='failed'?'badge-fail':r.status==='processing'?'badge-processing':'badge-pending']">
+                    {{ r.status }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" v-if="detailTotalPages > 1">
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="detailCurrentPage === 0" @click="goDetailPage(0)">«</button>
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="detailCurrentPage === 0" @click="goDetailPage(detailCurrentPage - 1)">‹</button>
+          <template v-for="p in detailPageNums" :key="p === null ? 'e-' + Math.random() : p">
+            <span v-if="p === null" class="page-ellipsis">…</span>
+            <button v-else :class="['btn btn-sm', p === detailCurrentPage ? 'btn-page-active' : 'btn-secondary']" @click="goDetailPage(p)">{{ p + 1 }}</button>
+          </template>
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="detailCurrentPage >= detailTotalPages - 1" @click="goDetailPage(detailCurrentPage + 1)">›</button>
+          <button class="btn btn-secondary btn-sm btn-nav" :disabled="detailCurrentPage >= detailTotalPages - 1" @click="goDetailPage(detailTotalPages - 1)">»</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row Detail Modal -->
+    <div v-if="selectedRow" class="modal-overlay" @click.self="selectedRow=null">
+      <div class="modal" style="max-width:700px;max-height:90vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="modal-title" style="font-size:18px;margin:0;text-align:left">Row {{ selectedRow.row_number }}</div>
+          <button class="btn btn-ghost" @click="selectedRow=null" style="font-size:20px">&times;</button>
+        </div>
+        <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:14px">
+          <strong>Result:</strong>
+          <span>
+            <span v-if="selectedRow.match_result===1" class="badge badge-ok" style="font-size:13px;padding:4px 14px">OK</span>
+            <span v-else-if="selectedRow.match_result===0" class="badge badge-fail" style="font-size:13px;padding:4px 14px">No Match</span>
+            <span v-else class="badge badge-pending" style="font-size:13px;padding:4px 14px">—</span>
+            <span v-if="selectedRow.match_score!=null" style="margin-left:8px;color:var(--text-secondary)">{{ selectedRow.match_score.toFixed(1) }}%</span>
+          </span>
+          <strong>Status:</strong>
+          <span :class="['badge', selectedRow.status==='completed'?'badge-ok':selectedRow.status==='failed'?'badge-fail':'badge-pending']">{{ selectedRow.status }}</span>
+          <strong>Comment:</strong>
+          <div style="background:var(--bg-input);padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);white-space:pre-wrap;word-break:break-word">{{ selectedRow.comment_text }}</div>
+          <strong>Screenshot:</strong>
+          <div>
+            <a v-if="selectedRow.screenshot_url" :href="selectedRow.screenshot_url" target="_blank" rel="noopener"
+               style="color:var(--yn-blue-700);word-break:break-all;font-size:13px">{{ selectedRow.screenshot_url }}</a>
+            <span v-else style="color:var(--text-secondary)">No URL</span>
+          </div>
+          <strong v-if="selectedRow.error_message">Error:</strong>
+          <div v-if="selectedRow.error_message" style="color:var(--yn-red);font-size:13px;background:#fef2f2;padding:8px 12px;border-radius:8px">{{ selectedRow.error_message }}</div>
+          <strong>OCR Text:</strong>
+          <div style="background:var(--bg-input);padding:10px 14px;border-radius:8px;border:1px solid var(--border-color);max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-word;font-size:13px;line-height:1.5">{{ selectedRow.ocr_text || '(No OCR text)' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ TAB: Admin ═══ -->
+    <div v-if="currentTab==='admin'">
+      <div class="admin-grid">
+        <!-- Settings -->
+        <div class="card">
+          <div class="card-title"><span class="icon">&#9881;&#65039;</span> Settings</div>
+          <div v-for="s in adminSettings" :key="s.key" class="setting-row">
+            <div class="setting-info">
+              <div class="setting-key">{{ s.key }}</div>
+              <div class="setting-desc">{{ s.description }}</div>
+            </div>
+            <input class="form-input setting-input" v-model="s.value" @change="saveSetting(s)" />
+          </div>
+          <div v-if="adminSettings.length===0" class="empty-state" style="padding:24px"><p>No settings.</p></div>
+        </div>
+        <!-- Password -->
+        <div class="card">
+          <div class="card-title"><span class="icon">&#128273;</span> Change Password</div>
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <input class="form-input" type="password" v-model="pwdCurrent" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input class="form-input" type="password" v-model="pwdNew" />
+          </div>
+          <button class="btn btn-primary btn-sm" @click="changePassword" style="margin-top:8px">Update Password</button>
+        </div>
+        <!-- Google Sheets -->
+        <div class="card">
+          <div class="card-title"><span class="icon">&#128279;</span> Google Sheets Integration</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+            <span :style="{color: gsheetConfigured ? 'var(--yn-green)' : 'var(--yn-red)', fontWeight:600}">
+              {{ gsheetConfigured ? 'Credentials configured' : 'No credentials uploaded' }}
+            </span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Upload Service Account JSON</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="file" accept=".json" @change="uploadGoogleCreds" ref="gCredsInput" style="font-size:13px" />
+              <button v-if="gsheetConfigured" class="btn btn-danger btn-sm" @click="removeGoogleCreds">Remove</button>
+            </div>
+            <div class="form-hint">Google Cloud Console &rarr; IAM &rarr; Service Accounts. Share your sheet with the service account email.</div>
+          </div>
+        </div>
+        <!-- Maintenance -->
+        <div class="card">
+          <div class="card-title"><span class="icon">&#128736;</span> Maintenance</div>
+          <button class="btn btn-secondary btn-sm" @click="clearCache">Clear Image Cache</button>
+          <div class="form-hint" style="margin-top:8px">Removes cached downloaded images. Next job will re-download.</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API = '/api';
+const { createApp, ref, computed, onMounted, watch } = Vue;
+
+createApp({
+  setup() {
+    // ── State ──
+    const currentTab = ref('upload');
+    const toasts = ref([]);
+    const showLogin = ref(false);
+    const loginEmail = ref('');
+    const loginPassword = ref('');
+    const loginLoading = ref(false);
+    const authToken = ref(localStorage.getItem('qc_token') || '');
+    const isDragging = ref(false);
+    const isDark = ref(localStorage.getItem('qc_theme') === 'dark');
+    const inputMode = ref('file');
+    const gsheetUrl = ref('');
+    const gsheetLoading = ref(false);
+    const gsheetConfigured = ref(false);
+    const gsheetServiceEmail = ref('');
+    const uploadedFile = ref(null);
+    const preview = ref(null);
+    const config = ref({
+      headerLine: 1, commentColumn: 'A', screenshotColumn: 'B',
+      resultColumn: 'C', ocrDumpColumn: '', parallelWorkers: 2,
+      matchThreshold: 80, sheetName: '', startRow: null, endRow: null,
+    });
+    const jobStarting = ref(false);
+    const activeJob = ref(null);
+    const jobs = ref([]);
+    const jobsTotal = ref(0);
+    const jobsSkip = ref(0);
+    const jobsLimit = ref(10);
+    const detailJob = ref(null);
+    const detailRows = ref([]);
+    const detailFilter = ref('');
+    const detailResultFilter = ref('');
+    const detailRowSkip = ref(0);
+    const detailRowLimit = ref(50);
+    const detailRowsTotal = ref(0);
+    const selectedRow = ref(null);
+    const adminSettings = ref([]);
+    const pwdCurrent = ref('');
+    const pwdNew = ref('');
+    const showRename = ref(false);
+    const renameValue = ref('');
+    const renameJobId = ref(null);
+    let pollInterval = null;
+    let detailPollInterval = null;
+
+    // ── Pagination helpers ──
+    // Returns array of page indices (0-based) with null for ellipsis gaps
+    function getPageNums(current, total, maxVisible = 7) {
+      if (total <= maxVisible) return Array.from({ length: total }, (_, i) => i);
+      const pages = [];
+      const half = Math.floor(maxVisible / 2);
+      let start = Math.max(0, current - half);
+      let end = Math.min(total - 1, start + maxVisible - 1);
+      if (end - start < maxVisible - 1) start = Math.max(0, end - maxVisible + 1);
+      if (start > 0) { pages.push(0); if (start > 1) pages.push(null); }
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (end < total - 1) { if (end < total - 2) pages.push(null); pages.push(total - 1); }
+      return pages;
+    }
+
+    const jobsCurrentPage = computed(() => Math.floor(jobsSkip.value / jobsLimit.value));
+    const jobsTotalPages  = computed(() => Math.max(1, Math.ceil(jobsTotal.value / jobsLimit.value)));
+    const jobsPageNums    = computed(() => getPageNums(jobsCurrentPage.value, jobsTotalPages.value));
+
+    const detailCurrentPage = computed(() => Math.floor(detailRowSkip.value / detailRowLimit.value));
+    const detailTotalPages  = computed(() => Math.max(1, Math.ceil(detailRowsTotal.value / detailRowLimit.value)));
+    const detailPageNums    = computed(() => getPageNums(detailCurrentPage.value, detailTotalPages.value));
+
+    function goJobsPage(p) {
+      p = Math.max(0, Math.min(p, jobsTotalPages.value - 1));
+      jobsSkip.value = p * jobsLimit.value;
+      loadJobs();
+    }
+    function goDetailPage(p) {
+      p = Math.max(0, Math.min(p, detailTotalPages.value - 1));
+      detailRowSkip.value = p * detailRowLimit.value;
+      loadJobRows();
+    }
+
+    // ── Theme ──
+    function applyTheme() {
+      document.documentElement.classList.toggle('dark', isDark.value);
+      localStorage.setItem('qc_theme', isDark.value ? 'dark' : 'light');
+    }
+    function toggleTheme() { isDark.value = !isDark.value; applyTheme(); }
+
+    // ── Hash Routing ──
+    function updateHash() {
+      if (currentTab.value === 'detail' && detailJob.value) {
+        window.location.hash = '#/job/' + detailJob.value.id;
+      } else if (currentTab.value === 'jobs') {
+        window.location.hash = '#/jobs';
+      } else if (currentTab.value === 'admin') {
+        window.location.hash = '#/admin';
+      } else {
+        window.location.hash = '';
+      }
+    }
+    async function handleHash() {
+      const hash = window.location.hash;
+      const jobMatch = hash.match(/^#\/job\/(\d+)$/);
+      if (jobMatch) {
+        await viewJobDetail(parseInt(jobMatch[1]));
+        return;
+      }
+      if (hash === '#/jobs') { currentTab.value = 'jobs'; loadJobs(); return; }
+      if (hash === '#/admin') { openAdmin(); return; }
+    }
+    watch(currentTab, () => updateHash());
+
+    // ── Init ──
+    onMounted(async () => {
+      applyTheme();
+      try {
+        const resp = await fetch(API + '/gsheet/status');
+        const data = await resp.json();
+        gsheetConfigured.value = data.configured;
+        gsheetServiceEmail.value = data.service_email || '';
+      } catch (e) {}
+      // Handle initial hash route (e.g. shared URL)
+      if (window.location.hash) {
+        await handleHash();
+      }
+      window.addEventListener('hashchange', handleHash);
+    });
+
+    // ── Helpers ──
+    function toast(message, type = 'info') {
+      toasts.value.push({ message, type });
+      setTimeout(() => toasts.value.shift(), 4000);
+    }
+    function authHeaders() {
+      return authToken.value ? { 'Authorization': 'Bearer ' + authToken.value } : {};
+    }
+    async function apiFetch(url, opts = {}) {
+      const resp = await fetch(API + url, { ...opts, headers: { ...opts.headers, ...authHeaders() } });
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ detail: 'Request failed' }));
+        throw new Error(err.detail || 'Error');
+      }
+      return resp;
+    }
+    const allColumns = computed(() => {
+      const letters = [];
+      for (let i = 0; i < 30; i++) {
+        if (i < 26) letters.push(String.fromCharCode(65 + i));
+        else letters.push('A' + String.fromCharCode(65 + i - 26));
+      }
+      return letters;
+    });
+    const safeOutputColumns = computed(() => {
+      const used = new Set([config.value.commentColumn, config.value.screenshotColumn]);
+      return allColumns.value.filter(c => !used.has(c));
+    });
+    const progressPct = computed(() => {
+      if (!activeJob.value || !activeJob.value.total_rows) return 0;
+      return ((activeJob.value.processed_rows + activeJob.value.failed_rows) / activeJob.value.total_rows) * 100;
+    });
+    const detailProgressPct = computed(() => {
+      if (!detailJob.value || !detailJob.value.total_rows) return 0;
+      return ((detailJob.value.processed_rows + detailJob.value.failed_rows) / detailJob.value.total_rows) * 100;
+    });
+    function colLetterToIndex(col) {
+      col = col.toUpperCase(); let idx = 0;
+      for (let i = 0; i < col.length; i++) idx = idx * 26 + (col.charCodeAt(i) - 64);
+      return idx - 1;
+    }
+    function getHeaderName(col) {
+      if (!preview.value) return col;
+      const headerRow = preview.value.rows.find(r => r.row_number === config.value.headerLine);
+      if (!headerRow) return col;
+      const idx = colLetterToIndex(col);
+      return (headerRow.cells[idx] || col).substring(0, 20);
+    }
+    function formatDate(dt) {
+      return new Date(dt).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+
+    // ── Auto-detect columns ──
+    function autoDetectColumns() {
+      if (!preview.value || !preview.value.column_letters.length) return;
+      const cols = preview.value.column_letters;
+      const headerRow = preview.value.rows.find(r => r.row_number === config.value.headerLine);
+      if (headerRow && headerRow.cells) {
+        const headerMap = {};
+        cols.forEach((cl, i) => { headerMap[cl] = (headerRow.cells[i] || '').toLowerCase().trim(); });
+        const commentCol = cols.find(cl => headerMap[cl].includes('comment'));
+        if (commentCol) config.value.commentColumn = commentCol;
+        else if (!cols.includes(config.value.commentColumn)) config.value.commentColumn = cols[0];
+        const screenshotCol = cols.find(cl => headerMap[cl].includes('screenshot') || headerMap[cl].includes('link screen'));
+        if (screenshotCol) config.value.screenshotColumn = screenshotCol;
+        else if (!cols.includes(config.value.screenshotColumn)) config.value.screenshotColumn = cols.length > 1 ? cols[1] : cols[0];
+      } else {
+        if (!cols.includes(config.value.commentColumn)) config.value.commentColumn = cols[0];
+        if (!cols.includes(config.value.screenshotColumn)) config.value.screenshotColumn = cols.length > 1 ? cols[1] : cols[0];
+      }
+      // Auto-set result column after last data column
+      const lastDataCol = cols[cols.length - 1];
+      const nextIdx = allColumns.value.indexOf(lastDataCol) + 1;
+      if (nextIdx < allColumns.value.length) {
+        const nextCol = allColumns.value[nextIdx];
+        if (![config.value.commentColumn, config.value.screenshotColumn].includes(nextCol)) {
+          config.value.resultColumn = nextCol;
+        }
+      }
+      if ([config.value.commentColumn, config.value.screenshotColumn].includes(config.value.resultColumn)) {
+        config.value.resultColumn = safeOutputColumns.value[safeOutputColumns.value.length - 1] || 'Z';
+      }
+      if (config.value.ocrDumpColumn && [config.value.commentColumn, config.value.screenshotColumn].includes(config.value.ocrDumpColumn)) {
+        config.value.ocrDumpColumn = '';
+      }
+    }
+
+    // ── Auth ──
+    async function doLogin() {
+      loginLoading.value = true;
+      try {
+        const resp = await fetch(API + '/auth/login', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: loginEmail.value, password: loginPassword.value }),
+        });
+        if (!resp.ok) throw new Error('Invalid credentials');
+        const data = await resp.json();
+        authToken.value = data.access_token;
+        localStorage.setItem('qc_token', data.access_token);
+        showLogin.value = false;
+        toast('Logged in as ' + data.email, 'success');
+        loadAdminSettings();
+      } catch (e) { toast(e.message, 'error'); }
+      finally { loginLoading.value = false; }
+    }
+    function openAdmin() {
+      if (!authToken.value) { showLogin.value = true; return; }
+      currentTab.value = 'admin'; loadAdminSettings();
+    }
+
+    // ── File Upload ──
+    async function handleFileSelect(e) { const f = e.target.files[0]; if (f) await uploadFile(f); }
+    function handleDrop(e) { isDragging.value = false; const f = e.dataTransfer.files[0]; if (f) uploadFile(f); }
+    async function uploadFile(file) {
+      const fd = new FormData(); fd.append('file', file);
+      try {
+        const resp = await fetch(API + '/files/upload', { method: 'POST', body: fd });
+        if (!resp.ok) { const e = await resp.json(); throw new Error(e.detail); }
+        uploadedFile.value = await resp.json();
+        toast('File uploaded', 'success');
+        await loadPreview();
+      } catch (e) { toast('Upload failed: ' + e.message, 'error'); }
+    }
+    async function loadPreview() {
+      if (!uploadedFile.value) return;
+      try {
+        let url = '/files/preview/' + uploadedFile.value.filename;
+        if (config.value.sheetName) url += '?sheet_name=' + encodeURIComponent(config.value.sheetName);
+        const resp = await apiFetch(url);
+        preview.value = await resp.json();
+        if (preview.value.sheet_names && preview.value.sheet_names.length && !config.value.sheetName) {
+          config.value.sheetName = preview.value.sheet_names[0];
+        }
+        autoDetectColumns();
+      } catch (e) { toast('Preview failed: ' + e.message, 'error'); }
+    }
+    async function reloadPreview() {
+      if (inputMode.value === 'gsheet') await loadGSheetPreview();
+      else await loadPreview();
+    }
+    async function loadGSheetPreview() {
+      if (!gsheetUrl.value) return;
+      gsheetLoading.value = true;
+      try {
+        let url = '/gsheet/preview?url=' + encodeURIComponent(gsheetUrl.value);
+        if (config.value.sheetName) url += '&sheet_name=' + encodeURIComponent(config.value.sheetName);
+        const resp = await apiFetch(url);
+        const data = await resp.json();
+        preview.value = {
+          rows: data.rows.map(r => ({ row_number: r.row_number, cells: r.cells })),
+          total_columns: data.total_columns, column_letters: data.column_letters,
+          sheet_names: data.sheet_names,
+        };
+        if (data.sheet_names.length && !config.value.sheetName) {
+          config.value.sheetName = data.active_sheet || data.sheet_names[0];
+        }
+        autoDetectColumns();
+        toast('Sheet loaded: ' + data.total_rows + ' rows', 'success');
+      } catch (e) { toast('GSheet error: ' + e.message, 'error'); }
+      finally { gsheetLoading.value = false; }
+    }
+    function resetUpload() {
+      uploadedFile.value = null; preview.value = null; activeJob.value = null;
+      gsheetUrl.value = ''; config.value.sheetName = '';
+    }
+
+    // ── Jobs ──
+    async function startJob() {
+      jobStarting.value = true;
+      try {
+        const params = new URLSearchParams();
+        if (inputMode.value === 'file' && uploadedFile.value) {
+          params.set('filename', uploadedFile.value.filename);
+          params.set('original_filename', uploadedFile.value.original_filename);
+        }
+        const body = {
+          header_line: config.value.headerLine,
+          comment_column: config.value.commentColumn,
+          screenshot_column: config.value.screenshotColumn,
+          result_column: config.value.resultColumn,
+          ocr_dump_column: config.value.ocrDumpColumn || null,
+          parallel_workers: config.value.parallelWorkers,
+          match_threshold: config.value.matchThreshold,
+          sheet_name: config.value.sheetName || null,
+          start_row: config.value.startRow || null,
+          end_row: config.value.endRow || null,
+          gsheet_url: inputMode.value === 'gsheet' ? gsheetUrl.value : null,
+        };
+        const resp = await fetch(API + '/jobs?' + params, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!resp.ok) { const e = await resp.json(); throw new Error(e.detail); }
+        activeJob.value = await resp.json();
+        toast('Job started! Processing ' + activeJob.value.total_rows + ' rows...', 'success');
+        startPolling(activeJob.value.id);
+      } catch (e) { toast('Failed: ' + e.message, 'error'); }
+      finally { jobStarting.value = false; }
+    }
+    function startPolling(jobId) {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
+        try {
+          const resp = await apiFetch('/jobs/' + jobId);
+          const j = await resp.json();
+          activeJob.value = j;
+          if (['completed', 'failed', 'paused'].includes(j.status)) {
+            clearInterval(pollInterval); pollInterval = null;
+            if (j.status === 'completed') toast('Completed! ' + j.matched_rows + '/' + j.total_rows + ' matched.', 'success');
+            if (j.status === 'failed') toast('Job failed: ' + (j.error_message || 'Unknown'), 'error');
+          }
+        } catch (e) {}
+      }, 2000);
+    }
+    async function loadJobs() {
+      try {
+        const resp = await apiFetch('/jobs?skip=' + jobsSkip.value + '&limit=' + jobsLimit.value);
+        const data = await resp.json();
+        jobs.value = data.jobs;
+        jobsTotal.value = data.total;
+      } catch (e) { toast('Failed to load jobs', 'error'); }
+    }
+    async function pauseJob(id) {
+      try {
+        await apiFetch('/jobs/' + id + '/pause', { method: 'POST' });
+        toast('Pause sent', 'info');
+        // Refresh immediately
+        setTimeout(async () => {
+          try {
+            const resp = await apiFetch('/jobs/' + id);
+            const j = await resp.json();
+            if (activeJob.value && activeJob.value.id === id) activeJob.value = j;
+            if (detailJob.value && detailJob.value.id === id) detailJob.value = j;
+            if (currentTab.value === 'jobs') loadJobs();
+          } catch (e2) {}
+        }, 1500);
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    async function resumeJob(id) {
+      try {
+        await apiFetch('/jobs/' + id + '/resume', { method: 'POST' });
+        toast('Resuming...', 'info');
+        // Always start polling based on current view
+        if (currentTab.value === 'detail' && detailJob.value && detailJob.value.id === id) {
+          detailJob.value.status = 'processing';
+          startDetailPolling(id);
+        } else if (activeJob.value && activeJob.value.id === id) {
+          activeJob.value.status = 'processing';
+          startPolling(id);
+        }
+        if (currentTab.value === 'jobs') setTimeout(loadJobs, 2000);
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    function downloadResult(id) { window.open(API + '/jobs/' + id + '/download', '_blank'); }
+    function downloadOriginal(id) { window.open(API + '/jobs/' + id + '/download-original', '_blank'); }
+    async function deleteJob(id) {
+      const job = jobs.value.find(j => j.id === id);
+      const jobLabel = job ? (job.job_name || job.original_filename || `Job #${id}`) : `Job #${id}`;
+      const msg = `Are you sure you want to permanently delete:\n\n"${jobLabel}"\n\nThis will remove ALL related data:\n• Uploaded file\n• Result file\n• Cached screenshot images\n• All processing records\n\nThis action CANNOT be undone.`;
+      if (!confirm(msg)) return;
+      try {
+        await apiFetch('/jobs/' + id, { method: 'DELETE' });
+        toast('Job deleted — all files cleaned up', 'success');
+        // If currently viewing this job's detail page, navigate back to jobs list
+        if (detailJob.value && detailJob.value.id === id) {
+          detailJob.value = null;
+          currentTab.value = 'jobs';
+          window.location.hash = '#/jobs';
+        }
+        loadJobs();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    // ── Job Detail (with own polling) ──
+    async function viewJobDetail(id) {
+      try {
+        const resp = await apiFetch('/jobs/' + id);
+        detailJob.value = await resp.json();
+        detailFilter.value = '';
+        detailResultFilter.value = '';
+        detailRowSkip.value = 0;
+        selectedRow.value = null;
+        await loadJobRows();
+        currentTab.value = 'detail';
+        window.location.hash = '#/job/' + id;
+        if (detailJob.value.status === 'processing') startDetailPolling(id);
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    function startDetailPolling(jobId) {
+      if (detailPollInterval) clearInterval(detailPollInterval);
+      detailPollInterval = setInterval(async () => {
+        if (currentTab.value !== 'detail') { clearInterval(detailPollInterval); detailPollInterval = null; return; }
+        try {
+          const resp = await apiFetch('/jobs/' + jobId);
+          detailJob.value = await resp.json();
+          await loadJobRows();
+          if (['completed', 'failed', 'paused'].includes(detailJob.value.status)) {
+            clearInterval(detailPollInterval); detailPollInterval = null;
+          }
+        } catch (e) {}
+      }, 3000);
+    }
+    async function loadJobRows() {
+      if (!detailJob.value) return;
+      try {
+        let url = '/jobs/' + detailJob.value.id + '/rows?skip=' + detailRowSkip.value + '&limit=' + detailRowLimit.value;
+        if (detailResultFilter.value === 'ok') url += '&result=ok';
+        else if (detailResultFilter.value === 'no') url += '&result=no';
+        else if (detailResultFilter.value === 'failed') url += '&status=failed';
+        else if (detailResultFilter.value === 'pending') url += '&status=pending';
+        const resp = await apiFetch(url);
+        const data = await resp.json();
+        detailRows.value = data.rows;
+        detailRowsTotal.value = data.total;
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    function openRowDetail(row) { selectedRow.value = { ...row }; }
+
+    // ── Rename ──
+    function openRename(j) {
+      renameJobId.value = j.id;
+      renameValue.value = j.job_name || j.original_filename;
+      showRename.value = true;
+    }
+    async function doRename() {
+      if (!renameValue.value.trim()) return;
+      try {
+        await apiFetch('/jobs/' + renameJobId.value + '/rename', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ job_name: renameValue.value.trim() }),
+        });
+        toast('Renamed', 'success');
+        showRename.value = false;
+        // Update in-memory
+        if (activeJob.value && activeJob.value.id === renameJobId.value) activeJob.value.job_name = renameValue.value.trim();
+        if (detailJob.value && detailJob.value.id === renameJobId.value) detailJob.value.job_name = renameValue.value.trim();
+        const idx = jobs.value.findIndex(j => j.id === renameJobId.value);
+        if (idx >= 0) jobs.value[idx].job_name = renameValue.value.trim();
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    // ── Admin ──
+    async function loadAdminSettings() {
+      try {
+        const resp = await apiFetch('/admin/settings');
+        adminSettings.value = await resp.json();
+      } catch (e) {
+        if (e.message.includes('401') || e.message.includes('403')) {
+          authToken.value = ''; localStorage.removeItem('qc_token'); showLogin.value = true;
+        }
+      }
+    }
+    async function saveSetting(s) {
+      try {
+        await apiFetch('/admin/settings', {
+          method: 'PUT', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: s.key, value: s.value }),
+        });
+        toast('Saved', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    async function changePassword() {
+      try {
+        await apiFetch('/auth/change-password', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ current_password: pwdCurrent.value, new_password: pwdNew.value }),
+        });
+        toast('Password updated', 'success'); pwdCurrent.value = ''; pwdNew.value = '';
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    async function uploadGoogleCreds(e) {
+      const file = e.target.files[0]; if (!file) return;
+      const fd = new FormData(); fd.append('file', file);
+      try {
+        await apiFetch('/admin/google-credentials', { method: 'POST', body: fd });
+        gsheetConfigured.value = true; toast('Credentials uploaded', 'success');
+      } catch (e2) { toast(e2.message, 'error'); }
+    }
+    async function removeGoogleCreds() {
+      if (!confirm('Remove Google credentials?')) return;
+      try {
+        await apiFetch('/admin/google-credentials', { method: 'DELETE' });
+        gsheetConfigured.value = false; toast('Removed', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    }
+    async function clearCache() {
+      try {
+        await apiFetch('/admin/clear-cache', { method: 'POST' });
+        toast('Cache cleared', 'success');
+      } catch (e) { toast(e.message, 'error'); }
+    }
+
+    // Cleanup on tab switch
+    watch(currentTab, (val) => {
+      if (val !== 'detail' && detailPollInterval) { clearInterval(detailPollInterval); detailPollInterval = null; }
+    });
+
+    return {
+      currentTab, toasts, showLogin, loginEmail, loginPassword, loginLoading,
+      isDragging, isDark, inputMode, gsheetUrl, gsheetLoading, gsheetConfigured, gsheetServiceEmail,
+      uploadedFile, preview, config, jobStarting, activeJob,
+      jobs, jobsTotal, jobsSkip, jobsLimit,
+      jobsCurrentPage, jobsTotalPages, jobsPageNums,
+      detailJob, detailRows, detailFilter, detailResultFilter,
+      detailRowSkip, detailRowLimit, detailRowsTotal, selectedRow,
+      detailCurrentPage, detailTotalPages, detailPageNums,
+      adminSettings, pwdCurrent, pwdNew, showRename, renameValue, renameJobId,
+      allColumns, safeOutputColumns, progressPct, detailProgressPct,
+      toggleTheme, toast, doLogin, openAdmin, handleFileSelect, handleDrop,
+      resetUpload, reloadPreview, loadGSheetPreview, autoDetectColumns, getHeaderName, formatDate,
+      startJob, loadJobs, pauseJob, resumeJob, downloadResult, downloadOriginal,
+      deleteJob, viewJobDetail, loadJobRows, openRowDetail,
+      openRename, doRename, goJobsPage, goDetailPage,
+      saveSetting, changePassword, uploadGoogleCreds, removeGoogleCreds, clearCache,
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
