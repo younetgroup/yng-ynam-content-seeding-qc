@@ -276,6 +276,59 @@
     }
     /* ── Admin Cards Grid ── */
     .admin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    /* ── Help Modal ── */
+    .help-modal {
+      background: var(--bg-card); border-radius: var(--yn-radius-card);
+      padding: 0; width: 100%; max-width: 760px; max-height: 90vh;
+      overflow: hidden; display: flex; flex-direction: column;
+      box-shadow: 0 24px 64px rgba(0,0,0,.25);
+    }
+    .help-header {
+      padding: 24px 32px 20px; border-bottom: 1px solid var(--border-color);
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(135deg, var(--yn-navy) 0%, var(--yn-blue-700) 100%);
+      border-radius: var(--yn-radius-card) var(--yn-radius-card) 0 0;
+    }
+    .help-header-title {
+      font-family: var(--yn-font-heading); font-size: 20px; font-weight: 700;
+      color: white; display: flex; align-items: center; gap: 10px;
+    }
+    .help-body { padding: 28px 32px; overflow-y: auto; flex: 1; }
+    .help-step {
+      display: flex; gap: 16px; margin-bottom: 28px; align-items: flex-start;
+    }
+    .help-step-num {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--yn-blue-700), var(--yn-purple-500));
+      color: white; font-weight: 700; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--yn-font-heading);
+    }
+    .help-step-content { flex: 1; }
+    .help-step-title {
+      font-family: var(--yn-font-heading); font-weight: 700; font-size: 15px;
+      color: var(--yn-navy); margin-bottom: 6px;
+    }
+    .help-step-body { font-size: 14px; color: var(--text-secondary); line-height: 1.7; }
+    .help-step-body ul { padding-left: 20px; margin-top: 6px; }
+    .help-step-body li { margin-bottom: 4px; }
+    .help-step-body strong { color: var(--text-primary); }
+    .help-tip {
+      background: var(--yn-blue-50); border: 1px solid var(--yn-blue-200);
+      border-radius: 10px; padding: 14px 18px; font-size: 13px;
+      color: var(--yn-blue-800); margin-top: 20px; line-height: 1.6;
+    }
+    .help-tip strong { color: var(--yn-blue-700); }
+    .help-divider {
+      border: none; border-top: 1px solid var(--border-color);
+      margin: 4px 0 28px;
+    }
+    .help-section-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--yn-blue-700);
+      margin-bottom: 16px; padding-bottom: 6px;
+      border-bottom: 2px solid var(--yn-blue-100);
+    }
     /* ── Responsive ── */
     @media (max-width: 900px) {
       .form-row-4 { grid-template-columns: 1fr 1fr; }
@@ -318,6 +371,123 @@
     </div>
   </div>
 
+  <!-- Help Modal -->
+  <div v-if="showHelp" class="modal-overlay" @click.self="showHelp=false">
+    <div class="help-modal">
+      <div class="help-header">
+        <div class="help-header-title">
+          <span style="font-size:22px">📖</span> Hướng dẫn sử dụng Content QC Tool
+        </div>
+        <button class="btn btn-ghost" @click="showHelp=false" style="color:rgba(255,255,255,.7);font-size:22px;padding:4px 10px">&times;</button>
+      </div>
+      <div class="help-body">
+        <div class="help-section-label">🚀 Quy trình sử dụng</div>
+
+        <div class="help-step">
+          <div class="help-step-num">1</div>
+          <div class="help-step-content">
+            <div class="help-step-title">Chuẩn bị file dữ liệu</div>
+            <div class="help-step-body">
+              Bạn cần có một file Excel <strong>(.xlsx)</strong> hoặc <strong>Google Sheet</strong> chứa 2 cột chính:
+              <ul>
+                <li><strong>Cột Comment:</strong> Nội dung comment cần kiểm tra (ví dụ: "Mình đặt rồi, sản phẩm xịn lắm")</li>
+                <li><strong>Cột Screenshot:</strong> Link ảnh chụp màn hình TikTok có chứa comment đó<br/>
+                  <span style="font-size:12px">→ Hỗ trợ: Google Drive, Gyazo, Imgur, link ảnh trực tiếp</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-step">
+          <div class="help-step-num">2</div>
+          <div class="help-step-content">
+            <div class="help-step-title">Tạo job mới — Tab "New Job"</div>
+            <div class="help-step-body">
+              <ul>
+                <li>Chọn <strong>Upload Excel File</strong> → kéo thả hoặc chọn file .xlsx từ máy tính</li>
+                <li>Hoặc chọn <strong>Google Sheet URL</strong> → dán link Google Sheet vào ô rồi nhấn <strong>Load Sheet</strong></li>
+                <li>Sau khi tải dữ liệu, chọn <strong>dòng tiêu đề</strong> (Header Line) trong bảng preview</li>
+                <li>Hệ thống tự nhận cột Comment và Screenshot. Kiểm tra lại cho đúng.</li>
+                <li>Chọn <strong>cột kết quả</strong> (Result Column) — hệ thống sẽ ghi 1 (khớp) hoặc 0 (không khớp) vào đây</li>
+                <li>Nhấn <strong>"Start QC Processing"</strong> để bắt đầu</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-step">
+          <div class="help-step-num">3</div>
+          <div class="help-step-content">
+            <div class="help-step-title">Theo dõi tiến độ xử lý</div>
+            <div class="help-step-body">
+              <ul>
+                <li>Thanh tiến độ hiển thị % đã xử lý — <strong>KHÔNG cần đợi trang, có thể đóng tab rồi quay lại</strong></li>
+                <li>Nút <strong>Pause</strong> — tạm dừng để giảm tải, nhấn <strong>Resume</strong> để tiếp tục</li>
+                <li>Nếu có lỗi (Failed), nhấn <strong>Retry</strong> để xử lý lại các row bị lỗi</li>
+                <li>Các con số thống kê hiển thị: Tổng / Khớp / Không khớp / Lỗi</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-step">
+          <div class="help-step-num">4</div>
+          <div class="help-step-content">
+            <div class="help-step-title">Xem & tải kết quả</div>
+            <div class="help-step-body">
+              <ul>
+                <li><strong>"Download Result"</strong> — tải file Excel kết quả có cột 1/0</li>
+                <li><strong>"Open Google Sheet"</strong> — nếu dùng GSheet, kết quả đã được ghi thẳng vào sheet</li>
+                <li><strong>"View Details"</strong> — xem từng row, lọc theo OK / No / Failed / Pending</li>
+                <li>Click vào bất kỳ row nào để xem chi tiết: nội dung OCR đọc được từ ảnh, link screenshot</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <hr class="help-divider" />
+        <div class="help-section-label">📊 Ý nghĩa kết quả</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+          <div style="text-align:center;padding:16px 12px;background:var(--bg-input);border-radius:12px;border:1px solid var(--border-color)">
+            <div style="font-size:24px;margin-bottom:6px">✅</div>
+            <div style="font-weight:700;color:var(--yn-green);font-family:var(--yn-font-heading);font-size:15px">OK</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Comment được tìm thấy trong screenshot, độ khớp ≥ ngưỡng đặt</div>
+          </div>
+          <div style="text-align:center;padding:16px 12px;background:var(--bg-input);border-radius:12px;border:1px solid var(--border-color)">
+            <div style="font-size:24px;margin-bottom:6px">❌</div>
+            <div style="font-weight:700;color:var(--yn-red);font-family:var(--yn-font-heading);font-size:15px">No</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Không tìm thấy comment khớp trong ảnh (OCR đọc được nhưng không match)</div>
+          </div>
+          <div style="text-align:center;padding:16px 12px;background:var(--bg-input);border-radius:12px;border:1px solid var(--border-color)">
+            <div style="font-size:24px;margin-bottom:6px">⚠️</div>
+            <div style="font-weight:700;color:var(--text-secondary);font-family:var(--yn-font-heading);font-size:15px">Failed</div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px">Không tải được ảnh (link hỏng, quyền truy cập, v.v.) — cần xem xét thủ công</div>
+          </div>
+        </div>
+
+        <hr class="help-divider" style="margin-top:4px" />
+        <div class="help-section-label">💡 Lưu ý quan trọng</div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:8px">
+          <div class="help-tip">
+            <strong>📌 Nhiều comment chung 1 ảnh:</strong> Nếu nhiều row liền kề dùng cùng link screenshot, chỉ cần điền link ở row đầu tiên — các row sau để trống, hệ thống tự hiểu.
+          </div>
+          <div class="help-tip">
+            <strong>🔗 Link Google Drive:</strong> Ảnh phải được chia sẻ <em>"Anyone with the link"</em> mới tải được. Nếu link riêng tư sẽ báo Failed.
+          </div>
+          <div class="help-tip">
+            <strong>📐 Ngưỡng khớp (Match Threshold):</strong> Mặc định 80% — tức comment phải giống 80% trở lên mới tính là OK. Có thể giảm xuống 70% nếu comment hay bị viết tắt, thiếu dấu.
+          </div>
+          <div class="help-tip">
+            <strong>🌙 Dark mode TikTok:</strong> Hệ thống tự nhận biết và xử lý cả ảnh chụp màn hình TikTok chế độ tối (nền đen chữ trắng).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Rename Modal -->
   <div v-if="showRename" class="modal-overlay" @click.self="showRename=false">
     <div class="modal" style="max-width:480px">
@@ -341,8 +511,11 @@
       </a>
       <div class="header-nav">
         <button :class="['nav-tab', currentTab==='upload' && 'active']" @click="currentTab='upload'">New Job</button>
-        <button :class="['nav-tab', currentTab==='jobs' && 'active']" @click="currentTab='jobs'; loadJobs()">Jobs</button>
+        <button :class="['nav-tab', (currentTab==='jobs' || currentTab==='detail') && 'active']" @click="currentTab='jobs'; loadJobs()">Jobs</button>
         <button :class="['nav-tab', currentTab==='admin' && 'active']" @click="openAdmin">Admin</button>
+        <button class="nav-tab" @click="showHelp=true" style="display:flex;align-items:center;gap:5px">
+          <span style="font-size:15px">❓</span> Help
+        </button>
         <button class="theme-toggle" @click="toggleTheme" :title="isDark?'Switch to Light':'Switch to Dark'">
           {{ isDark ? '&#9728;' : '&#9790;' }}
         </button>
@@ -769,6 +942,34 @@
           <button class="btn btn-secondary btn-sm" @click="clearCache">Clear Image Cache</button>
           <div class="form-hint" style="margin-top:8px">Removes cached downloaded images. Next job will re-download.</div>
         </div>
+        <!-- Prune Jobs -->
+        <div class="card" style="grid-column:1/-1">
+          <div class="card-title"><span class="icon">&#128465;</span> Xoá Jobs Cũ</div>
+          <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;line-height:1.6">
+            Xoá vĩnh viễn tất cả jobs cũ hơn mốc thời gian chọn. Thao tác này sẽ xoá toàn bộ dữ liệu liên quan bao gồm
+            file Excel gốc, file kết quả, ảnh screenshot đã cache và toàn bộ records trong database.
+            <strong style="color:var(--yn-red)">KHÔNG thể khôi phục lại sau khi xoá.</strong>
+          </p>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:10px">
+              <label class="form-label" style="margin:0;white-space:nowrap">Xoá jobs cũ hơn:</label>
+              <select class="form-select" v-model.number="pruneMonths" style="width:160px;height:40px">
+                <option :value="30">1 tháng (30 ngày)</option>
+                <option :value="60">2 tháng (60 ngày)</option>
+                <option :value="90">3 tháng (90 ngày)</option>
+                <option :value="180">6 tháng (180 ngày)</option>
+              </select>
+            </div>
+            <button class="btn btn-danger btn-sm" @click="pruneOldJobs" :disabled="pruneLoading">
+              <span style="font-size:15px">&#128465;</span>
+              {{ pruneLoading ? 'Đang xoá...' : 'Xoá Jobs Cũ' }}
+            </button>
+          </div>
+          <div v-if="pruneResult" :style="{marginTop:'12px',padding:'12px 16px',borderRadius:'10px',fontSize:'14px',background: pruneResult.error ? '#fef2f2' : '#dcfce7',color: pruneResult.error ? '#991b1b' : '#166534',border: pruneResult.error ? '1px solid #fecaca' : '1px solid #bbf7d0'}">
+            <span v-if="pruneResult.error">❌ {{ pruneResult.error }}</span>
+            <span v-else>✅ Đã xoá <strong>{{ pruneResult.deleted_jobs }} jobs</strong> và <strong>{{ pruneResult.cleaned_files }} files</strong></span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -823,6 +1024,10 @@ createApp({
     const showRename = ref(false);
     const renameValue = ref('');
     const renameJobId = ref(null);
+    const showHelp = ref(false);
+    const pruneMonths = ref(30);
+    const pruneLoading = ref(false);
+    const pruneResult = ref(null);
     let pollInterval = null;
     let detailPollInterval = null;
 
@@ -1298,6 +1503,31 @@ createApp({
         toast('Cache cleared', 'success');
       } catch (e) { toast(e.message, 'error'); }
     }
+    async function pruneOldJobs() {
+      const monthLabel = pruneMonths.value === 30 ? '1 tháng' : pruneMonths.value === 60 ? '2 tháng' : pruneMonths.value === 90 ? '3 tháng' : '6 tháng';
+      const msg = `⚠️ BẠN SẮP XOÁ TẤT CẢ JOBS CŨ HƠN ${monthLabel.toUpperCase()}\n\n`
+        + `Bao gồm:\n• Toàn bộ dữ liệu xử lý\n• File Excel gốc & kết quả\n• Ảnh screenshot đã cache\n• Records trong database\n\n`
+        + `Thao tác này KHÔNG THỂ KHÔI PHỤC.\nBạn có chắc chắn muốn tiếp tục?`;
+      if (!confirm(msg)) return;
+      pruneLoading.value = true;
+      pruneResult.value = null;
+      try {
+        const resp = await apiFetch('/admin/prune-jobs?older_than_days=' + pruneMonths.value, { method: 'DELETE' });
+        const data = await resp.json();
+        pruneResult.value = data;
+        if (data.deleted_jobs > 0) {
+          toast(`Đã xoá ${data.deleted_jobs} jobs cũ`, 'success');
+          if (currentTab.value === 'jobs') loadJobs();
+        } else {
+          toast('Không tìm thấy job nào đủ điều kiện xoá', 'info');
+        }
+      } catch (e) {
+        pruneResult.value = { error: e.message };
+        toast('Lỗi: ' + e.message, 'error');
+      } finally {
+        pruneLoading.value = false;
+      }
+    }
 
     // Cleanup on tab switch
     watch(currentTab, (val) => {
@@ -1321,6 +1551,7 @@ createApp({
       deleteJob, viewJobDetail, loadJobRows, openRowDetail,
       openRename, doRename, goJobsPage, goDetailPage,
       saveSetting, changePassword, uploadGoogleCreds, removeGoogleCreds, clearCache,
+      showHelp, pruneMonths, pruneLoading, pruneResult, pruneOldJobs,
     };
   }
 }).mount('#app');

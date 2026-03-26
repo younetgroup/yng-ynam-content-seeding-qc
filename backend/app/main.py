@@ -507,6 +507,62 @@ def admin_clear_cache(admin: User = Depends(require_admin)):
     return {"message": "Image cache cleared"}
 
 
+@app.delete("/api/admin/prune-jobs")
+def admin_prune_jobs(older_than_days: int = 30, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
+    """Delete all jobs older than older_than_days days, including all related files."""
+    from datetime import datetime, timedelta
+    import hashlib
+    cutoff = datetime.utcnow() - timedelta(days=older_than_days)
+    old_jobs = db.query(Job).filter(Job.created_at < cutoff).all()
+    if not old_jobs:
+        return {"message": "No jobs found older than that date", "deleted_jobs": 0, "cleaned_files": 0}
+
+    # Stop any active ones first
+    for job in old_jobs:
+        if is_job_active(job.id):
+            pause_job(job.id)
+
+    deleted_jobs = 0
+    cleaned_files = 0
+    cache_dir = "./data/image_cache"
+
+    for job in old_jobs:
+        # Collect screenshot URLs for cache cleanup
+        job_rows = db.query(JobRow).filter(JobRow.job_id == job.id).all()
+        screenshot_urls = set(r.screenshot_url.strip() for r in job_rows if r.screenshot_url)
+
+        # Delete uploaded file
+        if job.filename:
+            upload_path = os.path.join(settings.upload_dir, job.filename)
+            if os.path.exists(upload_path):
+                os.remove(upload_path)
+                cleaned_files += 1
+
+        # Delete result file
+        if job.result_filename and job.result_filename != "gsheet_written":
+            result_path = os.path.join(settings.result_dir, job.result_filename)
+            if os.path.exists(result_path):
+                os.remove(result_path)
+                cleaned_files += 1
+
+        # Delete cached images
+        for url in screenshot_urls:
+            cache_key = hashlib.sha256(url.encode()).hexdigest()
+            cache_file = os.path.join(cache_dir, cache_key)
+            if os.path.exists(cache_file):
+                os.remove(cache_file)
+                cleaned_files += 1
+
+        # Delete DB rows + job
+        db.query(JobRow).filter(JobRow.job_id == job.id).delete()
+        db.delete(job)
+        deleted_jobs += 1
+
+    db.commit()
+    logger.info(f"Pruned {deleted_jobs} jobs older than {older_than_days} days, cleaned {cleaned_files} files")
+    return {"message": f"Pruned {deleted_jobs} jobs", "deleted_jobs": deleted_jobs, "cleaned_files": cleaned_files}
+
+
 @app.post("/api/admin/google-credentials")
 async def upload_google_credentials(
     file: UploadFile = File(...),
