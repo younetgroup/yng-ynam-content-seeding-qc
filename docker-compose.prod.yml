@@ -1,0 +1,60 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    mem_limit: 4g
+    memswap_limit: 6g
+    environment:
+      DATABASE_URL: sqlite:///./data/content_qc.db
+      SECRET_KEY: ${SECRET_KEY}
+      DEFAULT_ADMIN_EMAIL: ${DEFAULT_ADMIN_EMAIL:-it@younetgroup.com}
+      DEFAULT_ADMIN_PASSWORD: ${DEFAULT_ADMIN_PASSWORD:-YouNet@2026}
+      MAX_WORKERS: ${MAX_WORKERS:-2}
+      MATCH_THRESHOLD: ${MATCH_THRESHOLD:-80}
+    volumes:
+      - content_qc_data:/app/data
+      - ocr_models:/root/.EasyOCR
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.content-qc-api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.content-qc-api.entrypoints=web,websecure"
+      - "traefik.http.routers.content-qc-api.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-mytlschallenge}"
+      - "traefik.http.services.content-qc-api.loadbalancer.server.port=8000"
+    networks:
+      - traefik-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-network"
+      - "traefik.http.routers.content-qc-web.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.content-qc-web.entrypoints=web,websecure"
+      - "traefik.http.routers.content-qc-web.tls.certresolver=${TRAEFIK_CERT_RESOLVER:-mytlschallenge}"
+      - "traefik.http.services.content-qc-web.loadbalancer.server.port=80"
+    networks:
+      - traefik-network
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  content_qc_data:
+  ocr_models:
+
+networks:
+  traefik-network:
+    external: true

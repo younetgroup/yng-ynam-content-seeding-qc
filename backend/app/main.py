@@ -178,7 +178,7 @@ def gsheet_status():
     return {"configured": configured, "service_email": service_email}
 
 
-@app.post("/api/gsheet/preview")
+@app.get("/api/gsheet/preview")
 def gsheet_preview(url: str = Query(...), sheet_name: Optional[str] = None):
     if not is_credentials_configured():
         raise HTTPException(status_code=400, detail="Google credentials not configured. Upload via Admin.")
