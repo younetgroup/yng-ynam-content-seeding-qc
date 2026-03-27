@@ -431,7 +431,7 @@ def download_result(job_id: int, db: Session = Depends(get_db)):
 
 
 @app.delete("/api/jobs/{job_id}")
-def delete_job(job_id: int, db: Session = Depends(get_db)):
+def delete_job(job_id: int, admin: User = Depends(require_admin), db: Session = Depends(get_db)):
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")

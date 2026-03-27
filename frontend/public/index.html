@@ -742,7 +742,7 @@
             <button v-if="j.result_filename && j.result_filename !== 'gsheet_written'" class="btn btn-success btn-sm" @click="downloadResult(j.id)">Result</button>
             <span v-if="j.result_filename === 'gsheet_written'" class="badge badge-ok" style="font-size:11px">GSheet</span>
             <button class="btn btn-secondary btn-sm" @click="viewJobDetail(j.id)">Detail</button>
-            <button class="btn btn-danger btn-sm" @click="deleteJob(j.id)">Delete</button>
+            <button v-if="authToken" class="btn btn-danger btn-sm" @click="deleteJob(j.id)">Delete</button>
           </div>
         </div>
         <!-- Pagination -->
